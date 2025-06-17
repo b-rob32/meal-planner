@@ -15,10 +15,13 @@
         .modal-content {
             transition: transform 0.25s ease;
         }
-        /* Custom styles for disabled button */
         .btn-disabled {
             cursor: not-allowed;
-            background-color: #a5b4fc; /* Lighter blue */
+            background-color: #9ca3af;
+            opacity: 0.7;
+        }
+        #main-content {
+            display: none; /* Hidden by default */
         }
     </style>
 </head>
@@ -30,13 +33,13 @@
         <header class="text-center mb-8">
             <h1 class="text-4xl font-bold text-gray-900">Meal Planner</h1>
             <p class="mt-2 text-lg text-gray-600">Create meals and generate your Walmart grocery list with one click.</p>
-            <div id="auth-container" class="mt-4 text-xs text-gray-500">
-                <p>Connecting to database...</p>
+            <div id="auth-container" class="mt-6">
+                <!-- Auth content will be injected here -->
             </div>
         </header>
 
-        <!-- Main Content -->
-        <main>
+        <!-- Main Content (hidden until logged in) -->
+        <main id="main-content">
             <!-- Action Button -->
             <div class="flex justify-end mb-6">
                 <button id="addMealBtn" class="bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75 flex items-center">
@@ -110,19 +113,15 @@
     <script type="module">
         // Firebase Imports
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, doc, updateDoc, deleteDoc, onSnapshot, query } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // =================================================================================
-        // STEP 1: PASTE YOUR FIREBASE CONFIGURATION HERE
-        // =================================================================================
-        // Replace this object with the one you get from your Firebase project.
-        // Go to Project Settings > General > Your apps > Web app > SDK setup and configuration
         const firebaseConfig = {
             apiKey: "AIzaSyAMhMmN4-BxA2j-6trRChbI7u-rrlgyFoA",
             authDomain: "meal-planner-76f26.firebaseapp.com",
             projectId: "meal-planner-76f26",
-            storageBucket: "meal-planner-76f26.firebasestorage.app",
+            storageBucket: "meal-planner-76f26.appspot.com",
             messagingSenderId: "911573120430",
             appId: "1:911573120430:web:74c381996f0cd254b8c43f"
         };
@@ -134,7 +133,7 @@
         let db;
 
         // Global state
-        let currentUserId = null;
+        let currentUser = null;
         let mealsUnsubscribe = null;
 
         // DOM Elements
@@ -151,24 +150,15 @@
         const loadingSpinner = document.getElementById('loading');
         const noMealsMessage = document.getElementById('no-meals');
         const authContainer = document.getElementById('auth-container');
+        const mainContent = document.getElementById('main-content');
         
-        // --- CHECK CONFIG and INITIALIZE ---
+        // --- INITIALIZE FIREBASE ---
         function startApp() {
-            if (firebaseConfig.apiKey === "YOUR_API_KEY") {
-                authContainer.innerHTML = `<p class="text-red-600 font-bold">Configuration Needed!</p><p>Please follow the instructions to set up your Firebase configuration in the index.html file.</p>`;
-                loadingSpinner.classList.add('hidden');
-                addMealBtn.disabled = true;
-                addMealBtn.classList.add('btn-disabled');
-                return;
-            }
-
             try {
                 app = initializeApp(firebaseConfig);
                 auth = getAuth(app);
                 db = getFirestore(app);
-                addMealBtn.disabled = false;
-                addMealBtn.classList.remove('btn-disabled');
-                initializeAuth();
+                handleAuthState();
             } catch (error) {
                 console.error("Firebase Initialization Error:", error);
                 authContainer.innerHTML = `<p class="text-red-500">Error connecting to Firebase. Check your configuration and console for details.</p>`;
@@ -176,24 +166,52 @@
             }
         }
 
-
         // --- AUTHENTICATION ---
-        async function initializeAuth() {
+        const provider = new GoogleAuthProvider();
+
+        function signInWithGoogle() {
+            signInWithPopup(auth, provider)
+                .catch((error) => {
+                    console.error("Google Sign-In Error:", error);
+                    alert("Could not sign in with Google. Please try again.");
+                });
+        }
+
+        function userSignOut() {
+            signOut(auth);
+        }
+
+        function handleAuthState() {
             onAuthStateChanged(auth, user => {
                 if (user) {
-                    console.log("User is signed in with UID:", user.uid);
-                    currentUserId = user.uid;
-                    authContainer.innerHTML = `<p>Session ID: <span class="font-mono bg-gray-200 px-1 rounded">${currentUserId}</span></p><p class="text-xs mt-1">Anyone with this URL can view and edit this list.</p>`;
+                    // User is signed in
+                    currentUser = user;
+                    authContainer.innerHTML = `
+                        <div class="flex items-center justify-center space-x-3">
+                            <img src="${user.photoURL}" alt="User photo" class="w-8 h-8 rounded-full">
+                            <p class="text-sm text-gray-700">Signed in as ${user.displayName}</p>
+                            <button id="signOutBtn" class="text-sm font-semibold text-blue-600 hover:underline">Sign Out</button>
+                        </div>
+                    `;
+                    mainContent.style.display = 'block';
+                    document.getElementById('signOutBtn').addEventListener('click', userSignOut);
                     fetchMeals();
                 } else {
-                    signInAnonymously(auth).catch(error => {
-                        console.error("Anonymous sign-in failed:", error);
-                        authContainer.innerHTML = `<p class="text-red-500">Could not start a session. Data cannot be saved.</p>`;
-                    });
+                    // User is signed out
+                    currentUser = null;
+                    if (mealsUnsubscribe) mealsUnsubscribe();
+                    authContainer.innerHTML = `
+                        <button id="signInBtn" class="bg-white text-gray-700 font-semibold py-2 px-4 border border-gray-300 rounded-lg shadow-sm hover:bg-gray-100 flex items-center mx-auto">
+                            <img src="https://www.google.com/favicon.ico" alt="Google icon" class="w-5 h-5 mr-3">
+                            Sign in with Google
+                        </button>
+                    `;
+                    mainContent.style.display = 'none';
+                    mealsList.innerHTML = '';
+                    document.getElementById('signInBtn').addEventListener('click', signInWithGoogle);
                 }
             });
         }
-
 
         // --- MODAL CONTROLS ---
         function openModal() { mealModal.classList.remove('hidden'); }
@@ -220,42 +238,31 @@
 
         // --- FIRESTORE OPERATIONS ---
         function getMealsCollection() {
-             if (!currentUserId) throw new Error("User not authenticated!");
-             // Using a public path so anyone with the link can collaborate
-             return collection(db, `meal-planners/default/meals`);
+             if (!currentUser) throw new Error("User not authenticated!");
+             return collection(db, `users/${currentUser.uid}/meals`);
         }
 
         async function fetchMeals() {
-            if (!currentUserId) return;
+            if (!currentUser) return;
             loadingSpinner.classList.remove('hidden');
             noMealsMessage.classList.add('hidden');
 
             const mealsCol = getMealsCollection();
             const q = query(mealsCol);
 
-            if (mealsUnsubscribe) mealsUnsubscribe(); // Detach old listener
+            if (mealsUnsubscribe) mealsUnsubscribe();
 
             mealsUnsubscribe = onSnapshot(q, (querySnapshot) => {
                 loadingSpinner.classList.add('hidden');
                 mealsList.innerHTML = '';
-                if (querySnapshot.empty) {
-                    noMealsMessage.classList.remove('hidden');
-                } else {
-                     noMealsMessage.classList.add('hidden');
-                }
+                noMealsMessage.classList.toggle('hidden', !querySnapshot.empty);
                 
                 const meals = [];
-                querySnapshot.forEach(doc => {
-                    meals.push({ id: doc.id, ...doc.data() });
-                });
+                querySnapshot.forEach(doc => meals.push({ id: doc.id, ...doc.data() }));
                 
-                // Sort meals alphabetically by name for consistent order
                 meals.sort((a, b) => a.name.localeCompare(b.name));
                 
-                meals.forEach(meal => {
-                    const card = createMealCard(meal);
-                    mealsList.appendChild(card);
-                });
+                meals.forEach(meal => mealsList.appendChild(createMealCard(meal)));
             }, (error) => {
                 console.error("Error fetching meals: ", error);
                 loadingSpinner.classList.add('hidden');
@@ -265,8 +272,8 @@
 
         async function saveMeal(event) {
             event.preventDefault();
-            if (!currentUserId) {
-                alert("You must be logged in to save meals.");
+            if (!currentUser) {
+                alert("You must be signed in to save meals.");
                 return;
             }
 
@@ -274,45 +281,40 @@
             const mealName = document.getElementById('mealName').value;
             
             const ingredients = [];
-            const ingredientDivs = ingredientsContainer.querySelectorAll('div');
-            ingredientDivs.forEach(div => {
+            ingredientsContainer.querySelectorAll('div').forEach(div => {
                 const name = div.querySelector('input[name="ingredientName"]').value;
                 const url = div.querySelector('input[name="ingredientUrl"]').value;
-                if(name && url) {
-                    ingredients.push({ name, url });
-                }
+                if(name && url) ingredients.push({ name, url });
             });
 
             const mealData = { name: mealName, ingredients };
             
             try {
                 if (mealId) {
-                    // Update existing meal
-                    const mealRef = doc(db, `meal-planners/default/meals`, mealId);
+                    const mealRef = doc(db, `users/${currentUser.uid}/meals`, mealId);
                     await updateDoc(mealRef, mealData);
                 } else {
-                    // Add new meal
                     await addDoc(getMealsCollection(), mealData);
                 }
                 closeModal();
             } catch (error) {
                 console.error("Error saving meal:", error);
+                alert("Failed to save meal. Check console for details.");
             }
         }
 
         async function deleteMeal() {
             const mealId = document.getElementById('mealId').value;
-            if (!mealId || !currentUserId) return;
+            if (!mealId || !currentUser) return;
             
-            // Using a custom modal for confirmation
-            const confirmation = window.confirm("Are you sure you want to delete this meal? This cannot be undone.");
-            if (confirmation) {
+            if (window.confirm("Are you sure you want to delete this meal? This cannot be undone.")) {
                  try {
-                    const mealRef = doc(db, `meal-planners/default/meals`, mealId);
+                    const mealRef = doc(db, `users/${currentUser.uid}/meals`, mealId);
                     await deleteDoc(mealRef);
                     closeModal();
                 } catch (error) {
                     console.error("Error deleting meal:", error);
+                    alert("Failed to delete meal. Check console for details.");
                 }
             }
         }
@@ -339,7 +341,6 @@
                 </div>
             `;
 
-            // Event Listeners for card buttons
             card.querySelector('.edit-btn').addEventListener('click', () => {
                 document.getElementById('modalTitle').innerText = 'Edit Meal';
                 document.getElementById('mealId').value = meal.id;
@@ -352,10 +353,7 @@
                 openModal();
             });
 
-            card.querySelector('.shop-btn').addEventListener('click', () => {
-                showShoppingList(meal);
-            });
-
+            card.querySelector('.shop-btn').addEventListener('click', () => showShoppingList(meal));
             return card;
         }
 
@@ -368,7 +366,7 @@
                  meal.ingredients.forEach(ingredient => {
                     const item = document.createElement('a');
                     item.href = ingredient.url;
-                    item.target = '_blank'; // Open in new tab
+                    item.target = '_blank';
                     item.rel = 'noopener noreferrer';
                     item.className = 'block p-3 bg-gray-100 rounded-lg hover:bg-blue-100 hover:shadow-md transition-all duration-200';
                     item.innerHTML = `
@@ -387,9 +385,8 @@
 
         // --- EVENT LISTENERS ---
         addMealBtn.addEventListener('click', () => {
-            if(addMealBtn.disabled) return;
             document.getElementById('modalTitle').innerText = 'Add New Meal';
-            createIngredientInput(); // Start with one empty ingredient field
+            createIngredientInput();
             openModal();
         });
         cancelBtn.addEventListener('click', closeModal);
