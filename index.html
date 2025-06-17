@@ -153,7 +153,7 @@
         const authContainer = document.getElementById('auth-container');
         
         // --- CHECK CONFIG and INITIALIZE ---
-        function initializeApp() {
+        function startApp() {
             if (firebaseConfig.apiKey === "YOUR_API_KEY") {
                 authContainer.innerHTML = `<p class="text-red-600 font-bold">Configuration Needed!</p><p>Please follow the instructions to set up your Firebase configuration in the index.html file.</p>`;
                 loadingSpinner.classList.add('hidden');
@@ -399,7 +399,7 @@
         closeShoppingListBtn.addEventListener('click', () => shoppingListModal.classList.add('hidden'));
 
         // Start the application
-        initializeApp();
+        startApp();
     </script>
 
 </body>
