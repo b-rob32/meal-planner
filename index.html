@@ -54,6 +54,10 @@
                         <label for="mealName" class="block text-sm font-medium text-gray-700 mb-1">Meal Name</label>
                         <input type="text" id="mealName" class="w-full border-gray-300 rounded-lg shadow-sm" placeholder="e.g., Taco Night" required>
                     </div>
+                    <div class="mt-4">
+                        <label for="recipeUrl" class="block text-sm font-medium text-gray-700 mb-1">Recipe Link (Optional)</label>
+                        <input type="url" id="recipeUrl" class="w-full border-gray-300 rounded-lg shadow-sm" placeholder="https://example.com/recipe">
+                    </div>
                     <div class="mt-6">
                         <h3 class="text-lg font-semibold mb-2">Ingredients</h3>
                         <div id="ingredientsContainer" class="space-y-4"></div>
@@ -143,6 +147,7 @@
                 form: document.getElementById('mealForm'),
                 id: document.getElementById('mealId'),
                 name: document.getElementById('mealName'),
+                recipeUrl: document.getElementById('recipeUrl'),
                 ingredientsContainer: document.getElementById('ingredientsContainer'),
                 addIngredientBtn: document.getElementById('addIngredientBtn'),
                 deleteBtn: document.getElementById('deleteMealBtn'),
@@ -220,6 +225,7 @@
             dom.mealModal.ingredientsContainer.innerHTML = '';
             dom.mealModal.id.value = meal ? meal.id : '';
             dom.mealModal.name.value = meal ? meal.name : '';
+            dom.mealModal.recipeUrl.value = meal ? meal.recipeUrl || '' : '';
             dom.mealModal.title.textContent = meal ? 'Edit Meal' : 'Add New Meal';
             dom.mealModal.deleteBtn.classList.toggle('hidden', !meal);
             (meal?.ingredients || [{}]).forEach(createIngredientInput);
@@ -256,6 +262,7 @@
             if (!currentUser) return alert("You must be signed in.");
             const mealData = {
                 name: dom.mealModal.name.value,
+                recipeUrl: dom.mealModal.recipeUrl.value,
                 ingredients: [...dom.mealModal.ingredientsContainer.querySelectorAll('div')].map(div => ({
                     name: div.querySelector('[name="ingredientName"]').value,
                     url: div.querySelector('[name="ingredientUrl"]').value
@@ -282,7 +289,7 @@
         async function shareMeal(meal) {
             if (!currentUser) return alert("You must be signed in to share.");
             try {
-                const sharedMealData = { name: meal.name, ingredients: meal.ingredients, owner: currentUser.displayName };
+                const sharedMealData = { name: meal.name, ingredients: meal.ingredients, recipeUrl: meal.recipeUrl || '', owner: currentUser.displayName };
                 const docRef = await addDoc(getSharedMealsCollection(), sharedMealData);
                 const shareUrl = `${window.location.origin}${window.location.pathname}?shareId=${docRef.id}`;
                 dom.shareModal.linkInput.value = shareUrl;
@@ -311,7 +318,7 @@
                             return;
                         }
                         try {
-                            await addDoc(getMealsCollection(), { name: sharedMeal.name, ingredients: sharedMeal.ingredients });
+                            await addDoc(getMealsCollection(), { name: sharedMeal.name, ingredients: sharedMeal.ingredients, recipeUrl: sharedMeal.recipeUrl || '' });
                             dom.importModal.status.textContent = "Meal imported successfully!";
                             dom.importModal.status.className = "text-center mt-4 text-sm text-green-600";
                             dom.importModal.importBtn.disabled = true;
@@ -331,12 +338,22 @@
             const card = document.createElement('div');
             card.className = 'bg-white rounded-xl shadow-lg overflow-hidden transform hover:-translate-y-1 transition-all duration-300 flex flex-col';
             const colors = ['bg-red-100', 'bg-green-100', 'bg-blue-100', 'bg-yellow-100', 'bg-purple-100', 'bg-indigo-100'];
+            const recipeButtonHtml = meal.recipeUrl 
+                ? `<a href="${meal.recipeUrl}" target="_blank" rel="noopener noreferrer" class="text-sm font-semibold text-gray-600 hover:text-black flex items-center"><i class="fas fa-link mr-1"></i> Recipe</a>` 
+                : '';
+
             card.innerHTML = `
                 <div class="${colors[Math.floor(Math.random() * colors.length)]} p-4 text-center"><h3 class="text-xl font-bold text-gray-800 truncate">${meal.name}</h3></div>
                 <div class="p-4 flex-grow"><p class="text-sm text-gray-600">${meal.ingredients?.length || 0} ingredients</p></div>
-                <div class="p-4 bg-gray-50 flex items-center justify-between">
-                    <div><button class="share-btn text-sm font-semibold text-gray-600 hover:text-black"><i class="fas fa-share-alt mr-1"></i> Share</button></div>
-                    <div><button class="edit-btn text-sm font-semibold text-gray-600 hover:text-black"><i class="fas fa-edit mr-1"></i> Edit</button> <button class="shop-btn bg-green-500 text-white font-bold py-2 px-3 rounded-lg hover:bg-green-600 text-sm"><i class="fas fa-shopping-cart mr-2"></i> Get List</button></div>
+                <div class="p-4 bg-gray-50 flex items-center justify-between flex-wrap gap-2">
+                    <div class="flex items-center space-x-3">
+                        ${recipeButtonHtml}
+                        <button class="share-btn text-sm font-semibold text-gray-600 hover:text-black flex items-center"><i class="fas fa-share-alt mr-1"></i> Share</button>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <button class="edit-btn text-sm font-semibold text-gray-600 hover:text-black"><i class="fas fa-edit mr-1"></i> Edit</button>
+                        <button class="shop-btn bg-green-500 text-white font-bold py-2 px-3 rounded-lg hover:bg-green-600 text-sm"><i class="fas fa-shopping-cart mr-2"></i> Get List</button>
+                    </div>
                 </div>`;
             card.querySelector('.edit-btn').onclick = () => setupMealModal(meal);
             card.querySelector('.shop-btn').onclick = () => showShoppingList(meal);
