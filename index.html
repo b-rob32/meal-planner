@@ -14,20 +14,11 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" xintegrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <style>
         body { font-family: 'Inter', sans-serif; }
-        .modal {
-            transition: opacity 0.25s ease;
-        }
-        .modal-content {
-            transition: transform 0.25s ease;
-        }
-        .btn-disabled {
-            cursor: not-allowed;
-            background-color: #9ca3af;
-            opacity: 0.7;
-        }
-        #main-content {
-            display: none; /* Hidden by default */
-        }
+        .modal { transition: opacity 0.25s ease; }
+        .modal-content { transition: transform 0.25s ease; }
+        .btn-disabled { cursor: not-allowed; background-color: #9ca3af; opacity: 0.7; }
+        #main-content { display: none; }
+        .copy-feedback { transition: opacity 0.5s ease-out; }
     </style>
 </head>
 <body class="bg-gray-50 text-gray-800">
@@ -38,58 +29,41 @@
         <header class="text-center mb-8">
             <h1 class="text-4xl font-bold text-gray-900">Meal Planner</h1>
             <p class="mt-2 text-lg text-gray-600">Create meals and generate your Walmart grocery list with one click.</p>
-            <div id="auth-container" class="mt-6">
-                <!-- Auth content will be injected here -->
-            </div>
+            <div id="auth-container" class="mt-6"></div>
         </header>
 
-        <!-- Main Content (hidden until logged in) -->
+        <!-- Main Content -->
         <main id="main-content">
-            <!-- Action Button -->
             <div class="flex justify-end mb-6">
                 <button id="addMealBtn" class="bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75 flex items-center">
                     <i class="fas fa-plus mr-2"></i> Add New Meal
                 </button>
             </div>
-            
-            <!-- Loading Spinner -->
-            <div id="loading" class="text-center py-10">
-                <i class="fas fa-spinner fa-spin fa-3x text-blue-500"></i>
-                <p class="mt-2">Loading your meals...</p>
-            </div>
-
-            <!-- Meals List -->
-            <div id="mealsList" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                <!-- Meal cards will be inserted here -->
-            </div>
-             <p id="no-meals" class="hidden text-center text-gray-500 mt-8">No meals found. Click "Add New Meal" to get started!</p>
+            <div id="loading" class="text-center py-10"><i class="fas fa-spinner fa-spin fa-3x text-blue-500"></i><p class="mt-2">Loading your meals...</p></div>
+            <div id="mealsList" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+            <p id="no-meals" class="hidden text-center text-gray-500 mt-8">No meals found. Click "Add New Meal" to get started!</p>
         </main>
 
         <!-- Add/Edit Meal Modal -->
         <div id="mealModal" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center p-4 z-50 hidden">
             <div class="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col">
-                <div class="p-6 border-b border-gray-200">
-                    <h2 id="modalTitle" class="text-2xl font-bold">Add New Meal</h2>
-                </div>
+                <div class="p-6 border-b"><h2 id="modalTitle" class="text-2xl font-bold">Add New Meal</h2></div>
                 <form id="mealForm" class="flex-grow overflow-y-auto p-6">
                     <input type="hidden" id="mealId">
                     <div>
                         <label for="mealName" class="block text-sm font-medium text-gray-700 mb-1">Meal Name</label>
-                        <input type="text" id="mealName" class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500" placeholder="e.g., Taco Night" required>
+                        <input type="text" id="mealName" class="w-full border-gray-300 rounded-lg shadow-sm" placeholder="e.g., Taco Night" required>
                     </div>
-
                     <div class="mt-6">
                         <h3 class="text-lg font-semibold mb-2">Ingredients</h3>
-                        <div id="ingredientsContainer" class="space-y-4">
-                            <!-- Ingredients will be added here -->
-                        </div>
+                        <div id="ingredientsContainer" class="space-y-4"></div>
                         <button type="button" id="addIngredientBtn" class="mt-4 text-sm font-medium text-blue-600 hover:text-blue-800 flex items-center">
                            <i class="fas fa-plus-circle mr-2"></i> Add Ingredient
                         </button>
                     </div>
                 </form>
-                 <div class="p-6 bg-gray-50 border-t border-gray-200 flex justify-end items-center space-x-4 rounded-b-xl">
-                     <button type="button" id="deleteMealBtn" class="hidden text-white bg-red-600 hover:bg-red-700 font-semibold py-2 px-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"><i class="fas fa-trash-alt mr-2"></i>Delete</button>
+                <div class="p-6 bg-gray-50 border-t flex justify-end items-center space-x-4 rounded-b-xl">
+                    <button type="button" id="deleteMealBtn" class="hidden text-white bg-red-600 hover:bg-red-700 font-semibold py-2 px-4 rounded-lg"><i class="fas fa-trash-alt mr-2"></i>Delete</button>
                     <button type="button" id="cancelBtn" class="bg-gray-200 text-gray-700 font-semibold py-2 px-4 rounded-lg hover:bg-gray-300">Cancel</button>
                     <button type="submit" form="mealForm" class="bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-blue-700">Save Meal</button>
                 </div>
@@ -99,29 +73,51 @@
         <!-- Shopping List Modal -->
         <div id="shoppingListModal" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center p-4 z-50 hidden">
             <div class="bg-white rounded-xl shadow-2xl w-full max-w-lg max-h-[90vh] flex flex-col">
-                 <div class="p-6 border-b border-gray-200 flex justify-between items-center">
+                <div class="p-6 border-b flex justify-between items-center">
                     <h2 id="shoppingListTitle" class="text-2xl font-bold">Shopping List</h2>
-                    <button id="closeShoppingListBtn" class="text-gray-400 hover:text-gray-600">
-                         <i class="fas fa-times fa-lg"></i>
-                    </button>
+                    <button id="closeShoppingListBtn" class="text-gray-400 hover:text-gray-600"><i class="fas fa-times fa-lg"></i></button>
                 </div>
-                <div id="shoppingListContainer" class="flex-grow overflow-y-auto p-6 space-y-3">
-                    <!-- Shopping list items will be inserted here -->
-                </div>
-                <div class="p-6 bg-gray-50 border-t border-gray-200 rounded-b-xl">
-                     <p class="text-sm text-gray-600">Click on an item to open the Walmart page and add it to your cart.</p>
+                <div id="shoppingListContainer" class="flex-grow overflow-y-auto p-6 space-y-3"></div>
+                <div class="p-6 bg-gray-50 border-t rounded-b-xl"><p class="text-sm text-gray-600">Click an item to open its Walmart page.</p></div>
+            </div>
+        </div>
+
+        <!-- Share Modal -->
+        <div id="shareModal" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center p-4 z-50 hidden">
+            <div class="bg-white rounded-xl shadow-2xl w-full max-w-lg">
+                <div class="p-6 border-b flex justify-between items-center"><h2 class="text-2xl font-bold">Share Meal</h2><button id="closeShareBtn" class="text-gray-400 hover:text-gray-600"><i class="fas fa-times fa-lg"></i></button></div>
+                <div class="p-6">
+                    <p class="text-gray-600 mb-2">Anyone with this link can view and import this meal.</p>
+                    <div class="relative">
+                        <input type="text" id="shareLinkInput" class="w-full bg-gray-100 border-gray-300 rounded-lg pr-12" readonly>
+                        <button id="copyLinkBtn" class="absolute inset-y-0 right-0 px-3 text-gray-500 hover:text-blue-600"><i class="fas fa-copy"></i></button>
+                    </div>
+                    <p id="copyFeedback" class="text-green-600 text-sm mt-2 opacity-0 copy-feedback">Copied to clipboard!</p>
                 </div>
             </div>
         </div>
+
+        <!-- Import Modal -->
+        <div id="importModal" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center p-4 z-50 hidden">
+            <div class="bg-white rounded-xl shadow-2xl w-full max-w-lg">
+                 <div class="p-6 border-b flex justify-between items-center"><h2 class="text-2xl font-bold">Import Meal</h2><button id="closeImportBtn" class="text-gray-400 hover:text-gray-600"><i class="fas fa-times fa-lg"></i></button></div>
+                 <div class="p-6">
+                     <p class="mb-4">You've been invited to import the meal:</p>
+                     <h3 id="importMealName" class="text-3xl font-bold text-center mb-2"></h3>
+                     <p id="importIngredientCount" class="text-center text-gray-500 mb-6"></p>
+                     <button id="importMealBtn" class="w-full bg-green-500 text-white font-bold py-3 px-4 rounded-lg hover:bg-green-600 flex items-center justify-center text-lg"><i class="fas fa-download mr-3"></i>Import Meal</button>
+                     <p id="importStatus" class="text-center mt-4 text-sm"></p>
+                 </div>
+            </div>
+        </div>
+
     </div>
 
     <script type="module">
-        // Firebase Imports
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, doc, updateDoc, deleteDoc, onSnapshot, query } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, doc, updateDoc, deleteDoc, onSnapshot, query, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // =================================================================================
         const firebaseConfig = {
             apiKey: "AIzaSyAMhMmN4-BxA2j-6trRChbI7u-rrlgyFoA",
             authDomain: "meal-planner-76f26.firebaseapp.com",
@@ -130,290 +126,264 @@
             messagingSenderId: "911573120430",
             appId: "1:911573120430:web:74c381996f0cd254b8c43f"
         };
-        // =================================================================================
         
-        // --- App Initialization ---
-        let app;
-        let auth;
-        let db;
-
-        // Global state
+        let app, auth, db;
         let currentUser = null;
         let mealsUnsubscribe = null;
 
-        // DOM Elements
-        const addMealBtn = document.getElementById('addMealBtn');
-        const mealModal = document.getElementById('mealModal');
-        const mealForm = document.getElementById('mealForm');
-        const cancelBtn = document.getElementById('cancelBtn');
-        const addIngredientBtn = document.getElementById('addIngredientBtn');
-        const ingredientsContainer = document.getElementById('ingredientsContainer');
-        const mealsList = document.getElementById('mealsList');
-        const deleteMealBtn = document.getElementById('deleteMealBtn');
-        const shoppingListModal = document.getElementById('shoppingListModal');
-        const closeShoppingListBtn = document.getElementById('closeShoppingListBtn');
-        const loadingSpinner = document.getElementById('loading');
-        const noMealsMessage = document.getElementById('no-meals');
-        const authContainer = document.getElementById('auth-container');
-        const mainContent = document.getElementById('main-content');
+        const dom = {
+            authContainer: document.getElementById('auth-container'),
+            mainContent: document.getElementById('main-content'),
+            mealsList: document.getElementById('mealsList'),
+            loading: document.getElementById('loading'),
+            noMeals: document.getElementById('no-meals'),
+            mealModal: {
+                self: document.getElementById('mealModal'),
+                title: document.getElementById('modalTitle'),
+                form: document.getElementById('mealForm'),
+                id: document.getElementById('mealId'),
+                name: document.getElementById('mealName'),
+                ingredientsContainer: document.getElementById('ingredientsContainer'),
+                addIngredientBtn: document.getElementById('addIngredientBtn'),
+                deleteBtn: document.getElementById('deleteMealBtn'),
+                cancelBtn: document.getElementById('cancelBtn')
+            },
+            shoppingListModal: {
+                self: document.getElementById('shoppingListModal'),
+                title: document.getElementById('shoppingListTitle'),
+                container: document.getElementById('shoppingListContainer'),
+                closeBtn: document.getElementById('closeShoppingListBtn')
+            },
+            shareModal: {
+                self: document.getElementById('shareModal'),
+                linkInput: document.getElementById('shareLinkInput'),
+                copyBtn: document.getElementById('copyLinkBtn'),
+                closeBtn: document.getElementById('closeShareBtn'),
+                feedback: document.getElementById('copyFeedback')
+            },
+            importModal: {
+                self: document.getElementById('importModal'),
+                name: document.getElementById('importMealName'),
+                count: document.getElementById('importIngredientCount'),
+                importBtn: document.getElementById('importMealBtn'),
+                closeBtn: document.getElementById('closeImportBtn'),
+                status: document.getElementById('importStatus')
+            },
+            addMealBtn: document.getElementById('addMealBtn')
+        };
         
-        // --- INITIALIZE FIREBASE ---
         function startApp() {
             try {
                 app = initializeApp(firebaseConfig);
                 auth = getAuth(app);
                 db = getFirestore(app);
                 handleAuthState();
+                checkForShareLink();
             } catch (error) {
                 console.error("Firebase Initialization Error:", error);
-                authContainer.innerHTML = `<p class="text-red-500">Error connecting to Firebase. Check your configuration and console for details.</p>`;
-                loadingSpinner.classList.add('hidden');
+                dom.authContainer.innerHTML = `<p class="text-red-500">Error connecting to Firebase.</p>`;
             }
         }
 
-        // --- AUTHENTICATION ---
         const provider = new GoogleAuthProvider();
-
-        function signInWithGoogle() {
-            signInWithPopup(auth, provider)
-                .catch((error) => {
-                    console.error("Google Sign-In Error:", error);
-                    alert("Could not sign in with Google. This can be caused by popup blockers or if your website's domain is not authorized in Firebase. Please check the console for more details.");
-                });
-        }
-
-        function userSignOut() {
-            signOut(auth);
-        }
+        const signInWithGoogle = () => signInWithPopup(auth, provider).catch(err => console.error("Sign-in error", err));
+        const userSignOut = () => signOut(auth);
 
         function handleAuthState() {
             onAuthStateChanged(auth, user => {
+                currentUser = user;
                 if (user) {
-                    // User is signed in
-                    currentUser = user;
-                    authContainer.innerHTML = `
+                    dom.authContainer.innerHTML = `
                         <div class="flex items-center justify-center space-x-3">
                             <img src="${user.photoURL}" alt="User photo" class="w-8 h-8 rounded-full">
                             <p class="text-sm text-gray-700">Signed in as ${user.displayName}</p>
                             <button id="signOutBtn" class="text-sm font-semibold text-blue-600 hover:underline">Sign Out</button>
-                        </div>
-                    `;
-                    mainContent.style.display = 'block';
+                        </div>`;
+                    dom.mainContent.style.display = 'block';
                     document.getElementById('signOutBtn').addEventListener('click', userSignOut);
                     fetchMeals();
                 } else {
-                    // User is signed out
-                    currentUser = null;
                     if (mealsUnsubscribe) mealsUnsubscribe();
-                    authContainer.innerHTML = `
-                        <button id="signInBtn" class="bg-white text-gray-700 font-semibold py-2 px-4 border border-gray-300 rounded-lg shadow-sm hover:bg-gray-100 flex items-center mx-auto">
-                            <img src="https://www.google.com/favicon.ico" alt="Google icon" class="w-5 h-5 mr-3">
-                            Sign in with Google
-                        </button>
-                    `;
-                    mainContent.style.display = 'none';
-                    mealsList.innerHTML = '';
+                    dom.authContainer.innerHTML = `<button id="signInBtn" class="bg-white text-gray-700 font-semibold py-2 px-4 border rounded-lg shadow-sm hover:bg-gray-100 flex items-center mx-auto"><img src="https://www.google.com/favicon.ico" alt="Google icon" class="w-5 h-5 mr-3">Sign in with Google</button>`;
+                    dom.mainContent.style.display = 'none';
+                    dom.mealsList.innerHTML = '';
                     document.getElementById('signInBtn').addEventListener('click', signInWithGoogle);
                 }
             });
         }
+        
+        const openModal = (modal) => modal.self.classList.remove('hidden');
+        const closeModal = (modal) => modal.self.classList.add('hidden');
 
-        // --- MODAL CONTROLS ---
-        function openModal() { mealModal.classList.remove('hidden'); }
-        function closeModal() { 
-            mealModal.classList.add('hidden');
-            mealForm.reset();
-            ingredientsContainer.innerHTML = '';
-            document.getElementById('mealId').value = '';
-            deleteMealBtn.classList.add('hidden');
+        function setupMealModal(meal = null) {
+            dom.mealModal.form.reset();
+            dom.mealModal.ingredientsContainer.innerHTML = '';
+            dom.mealModal.id.value = meal ? meal.id : '';
+            dom.mealModal.name.value = meal ? meal.name : '';
+            dom.mealModal.title.textContent = meal ? 'Edit Meal' : 'Add New Meal';
+            dom.mealModal.deleteBtn.classList.toggle('hidden', !meal);
+            (meal?.ingredients || [{}]).forEach(createIngredientInput);
+            openModal(dom.mealModal);
         }
 
-        // --- INGREDIENT UI ---
-        function createIngredientInput(ingredient = { name: '', url: '' }) {
+        const createIngredientInput = (ingredient = { name: '', url: '' }) => {
             const div = document.createElement('div');
             div.className = 'flex items-center space-x-2 p-2 bg-gray-100 rounded-md';
-            div.innerHTML = `
-                <input type="text" name="ingredientName" class="w-1/2 border-gray-300 rounded-lg shadow-sm text-sm" placeholder="Ingredient Name" value="${ingredient.name}" required>
-                <input type="url" name="ingredientUrl" class="w-1/2 border-gray-300 rounded-lg shadow-sm text-sm" placeholder="Walmart Product URL" value="${ingredient.url}" required>
-                <button type="button" class="removeIngredientBtn text-red-500 hover:text-red-700 p-1"><i class="fas fa-trash"></i></button>
-            `;
+            div.innerHTML = `<input type="text" name="ingredientName" class="w-1/2 border-gray-300 rounded-lg text-sm" placeholder="Ingredient Name" value="${ingredient.name}" required><input type="url" name="ingredientUrl" class="w-1/2 border-gray-300 rounded-lg text-sm" placeholder="Walmart Product URL" value="${ingredient.url}" required><button type="button" class="removeIngredientBtn text-red-500 hover:text-red-700 p-1"><i class="fas fa-trash"></i></button>`;
             div.querySelector('.removeIngredientBtn').onclick = () => div.remove();
-            ingredientsContainer.appendChild(div);
-        }
+            dom.mealModal.ingredientsContainer.appendChild(div);
+        };
+        
+        const getMealsCollection = () => collection(db, `users/${currentUser.uid}/meals`);
+        const getSharedMealsCollection = () => collection(db, 'shared-meals');
 
-        // --- FIRESTORE OPERATIONS ---
-        function getMealsCollection() {
-             if (!currentUser) throw new Error("User not authenticated!");
-             return collection(db, `users/${currentUser.uid}/meals`);
-        }
-
-        async function fetchMeals() {
+        function fetchMeals() {
             if (!currentUser) return;
-            loadingSpinner.classList.remove('hidden');
-            noMealsMessage.classList.add('hidden');
-
-            const mealsCol = getMealsCollection();
-            const q = query(mealsCol);
-
+            dom.loading.classList.remove('hidden');
+            dom.noMeals.classList.add('hidden');
             if (mealsUnsubscribe) mealsUnsubscribe();
-
-            mealsUnsubscribe = onSnapshot(q, (querySnapshot) => {
-                loadingSpinner.classList.add('hidden');
-                mealsList.innerHTML = '';
-                noMealsMessage.classList.toggle('hidden', !querySnapshot.empty);
-                
-                const meals = [];
-                querySnapshot.forEach(doc => meals.push({ id: doc.id, ...doc.data() }));
-                
-                meals.sort((a, b) => a.name.localeCompare(b.name));
-                
-                meals.forEach(meal => mealsList.appendChild(createMealCard(meal)));
-            }, (error) => {
-                console.error("Error fetching meals: ", error);
-                loadingSpinner.classList.add('hidden');
-            });
+            mealsUnsubscribe = onSnapshot(query(getMealsCollection()), snapshot => {
+                dom.loading.classList.add('hidden');
+                dom.mealsList.innerHTML = '';
+                dom.noMeals.classList.toggle('hidden', !snapshot.empty);
+                const meals = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })).sort((a,b) => a.name.localeCompare(b.name));
+                meals.forEach(meal => dom.mealsList.appendChild(createMealCard(meal)));
+            }, err => console.error("Error fetching meals:", err));
         }
-
 
         async function saveMeal(event) {
             event.preventDefault();
-            if (!currentUser) {
-                alert("You must be signed in to save meals.");
-                return;
-            }
-
-            const mealId = document.getElementById('mealId').value;
-            const mealName = document.getElementById('mealName').value;
-            
-            const ingredients = [];
-            ingredientsContainer.querySelectorAll('div').forEach(div => {
-                const name = div.querySelector('input[name="ingredientName"]').value;
-                const url = div.querySelector('input[name="ingredientUrl"]').value;
-                if(name && url) ingredients.push({ name, url });
-            });
-
-            const mealData = { name: mealName, ingredients };
-            
+            if (!currentUser) return alert("You must be signed in.");
+            const mealData = {
+                name: dom.mealModal.name.value,
+                ingredients: [...dom.mealModal.ingredientsContainer.querySelectorAll('div')].map(div => ({
+                    name: div.querySelector('[name="ingredientName"]').value,
+                    url: div.querySelector('[name="ingredientUrl"]').value
+                })).filter(ing => ing.name && ing.url)
+            };
             try {
-                if (mealId) {
-                    const mealRef = doc(db, `users/${currentUser.uid}/meals`, mealId);
-                    await updateDoc(mealRef, mealData);
+                if (dom.mealModal.id.value) {
+                    await updateDoc(doc(getMealsCollection(), dom.mealModal.id.value), mealData);
                 } else {
                     await addDoc(getMealsCollection(), mealData);
                 }
-                closeModal();
-            } catch (error) {
-                console.error("Error saving meal:", error);
-                alert("Failed to save meal. Check console for details.");
-            }
+                closeModal(dom.mealModal);
+            } catch (err) { console.error("Error saving meal:", err); }
         }
 
         async function deleteMeal() {
-            const mealId = document.getElementById('mealId').value;
-            if (!mealId || !currentUser) return;
-            
-            if (window.confirm("Are you sure you want to delete this meal? This cannot be undone.")) {
-                 try {
-                    const mealRef = doc(db, `users/${currentUser.uid}/meals`, mealId);
-                    await deleteDoc(mealRef);
-                    closeModal();
-                } catch (error) {
-                    console.error("Error deleting meal:", error);
-                    alert("Failed to delete meal. Check console for details.");
-                }
-            }
+            if (!currentUser || !dom.mealModal.id.value || !confirm("Are you sure you want to delete this meal?")) return;
+            try {
+                await deleteDoc(doc(getMealsCollection(), dom.mealModal.id.value));
+                closeModal(dom.mealModal);
+            } catch (err) { console.error("Error deleting meal:", err); }
         }
         
-        // --- UI RENDERING ---
+        async function shareMeal(meal) {
+            if (!currentUser) return alert("You must be signed in to share.");
+            try {
+                const sharedMealData = { name: meal.name, ingredients: meal.ingredients, owner: currentUser.displayName };
+                const docRef = await addDoc(getSharedMealsCollection(), sharedMealData);
+                const shareUrl = `${window.location.origin}${window.location.pathname}?shareId=${docRef.id}`;
+                dom.shareModal.linkInput.value = shareUrl;
+                openModal(dom.shareModal);
+            } catch(err) { console.error("Error sharing meal:", err); }
+        }
+
+        async function checkForShareLink() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const shareId = urlParams.get('shareId');
+            if (!shareId) return;
+            
+            try {
+                const docRef = doc(db, 'shared-meals', shareId);
+                const docSnap = await getDoc(docRef);
+                if (docSnap.exists()) {
+                    const sharedMeal = docSnap.data();
+                    dom.importModal.name.textContent = sharedMeal.name;
+                    dom.importModal.count.textContent = `${sharedMeal.ingredients.length} ingredients`;
+                    openModal(dom.importModal);
+                    
+                    dom.importModal.importBtn.onclick = async () => {
+                        if (!currentUser) {
+                            dom.importModal.status.textContent = "Please sign in first to import this meal.";
+                            dom.importModal.status.className = "text-center mt-4 text-sm text-red-600";
+                            return;
+                        }
+                        try {
+                            await addDoc(getMealsCollection(), { name: sharedMeal.name, ingredients: sharedMeal.ingredients });
+                            dom.importModal.status.textContent = "Meal imported successfully!";
+                            dom.importModal.status.className = "text-center mt-4 text-sm text-green-600";
+                            dom.importModal.importBtn.disabled = true;
+                        } catch (err) {
+                             dom.importModal.status.textContent = "Failed to import meal.";
+                             dom.importModal.status.className = "text-center mt-4 text-sm text-red-600";
+                             console.error("Import error:", err);
+                        }
+                    };
+                } else {
+                    alert("Shared meal not found.");
+                }
+            } catch(err) { console.error("Error fetching shared meal:", err); }
+        }
+
         function createMealCard(meal) {
             const card = document.createElement('div');
             card.className = 'bg-white rounded-xl shadow-lg overflow-hidden transform hover:-translate-y-1 transition-all duration-300 flex flex-col';
-            
-            const ingredientCount = meal.ingredients ? meal.ingredients.length : 0;
             const colors = ['bg-red-100', 'bg-green-100', 'bg-blue-100', 'bg-yellow-100', 'bg-purple-100', 'bg-indigo-100'];
-            const color = colors[Math.floor(Math.random() * colors.length)];
-            
             card.innerHTML = `
-                <div class="${color} p-4 text-center">
-                    <h3 class="text-xl font-bold text-gray-800 truncate">${meal.name}</h3>
-                </div>
-                <div class="p-4 flex-grow">
-                    <p class="text-sm text-gray-600">${ingredientCount} ingredient${ingredientCount !== 1 ? 's' : ''}</p>
-                </div>
+                <div class="${colors[Math.floor(Math.random() * colors.length)]} p-4 text-center"><h3 class="text-xl font-bold text-gray-800 truncate">${meal.name}</h3></div>
+                <div class="p-4 flex-grow"><p class="text-sm text-gray-600">${meal.ingredients?.length || 0} ingredients</p></div>
                 <div class="p-4 bg-gray-50 flex items-center justify-between">
-                     <button class="edit-btn text-sm font-semibold text-gray-600 hover:text-black"><i class="fas fa-edit mr-1"></i> Edit</button>
-                    <button class="shop-btn bg-green-500 text-white font-bold py-2 px-3 rounded-lg hover:bg-green-600 flex items-center text-sm"><i class="fas fa-shopping-cart mr-2"></i> Get List</button>
-                </div>
-            `;
-
-            card.querySelector('.edit-btn').addEventListener('click', () => {
-                document.getElementById('modalTitle').innerText = 'Edit Meal';
-                document.getElementById('mealId').value = meal.id;
-                document.getElementById('mealName').value = meal.name;
-                
-                ingredientsContainer.innerHTML = '';
-                meal.ingredients.forEach(createIngredientInput);
-                
-                deleteMealBtn.classList.remove('hidden');
-                openModal();
-            });
-
-            card.querySelector('.shop-btn').addEventListener('click', () => showShoppingList(meal));
+                    <div><button class="share-btn text-sm font-semibold text-gray-600 hover:text-black"><i class="fas fa-share-alt mr-1"></i> Share</button></div>
+                    <div><button class="edit-btn text-sm font-semibold text-gray-600 hover:text-black"><i class="fas fa-edit mr-1"></i> Edit</button> <button class="shop-btn bg-green-500 text-white font-bold py-2 px-3 rounded-lg hover:bg-green-600 text-sm"><i class="fas fa-shopping-cart mr-2"></i> Get List</button></div>
+                </div>`;
+            card.querySelector('.edit-btn').onclick = () => setupMealModal(meal);
+            card.querySelector('.shop-btn').onclick = () => showShoppingList(meal);
+            card.querySelector('.share-btn').onclick = () => shareMeal(meal);
             return card;
         }
 
-        function showShoppingList(meal) {
-            const container = document.getElementById('shoppingListContainer');
-            document.getElementById('shoppingListTitle').innerText = `${meal.name} List`;
-            container.innerHTML = '';
-            
-            if (meal.ingredients && meal.ingredients.length > 0) {
-                 meal.ingredients.forEach(ingredient => {
-                    const item = document.createElement('a');
-                    item.href = ingredient.url;
-                    item.target = '_blank';
-                    item.rel = 'noopener noreferrer';
-                    item.className = 'block p-3 bg-gray-100 rounded-lg hover:bg-blue-100 hover:shadow-md transition-all duration-200';
-                    item.innerHTML = `
-                        <div class="flex justify-between items-center">
-                            <span class="font-medium">${ingredient.name}</span>
-                            <i class="fas fa-external-link-alt text-gray-500"></i>
-                        </div>
-                    `;
-                    container.appendChild(item);
-                });
-            } else {
-                 container.innerHTML = `<p class="text-gray-500">This meal has no ingredients.</p>`;
-            }
-            shoppingListModal.classList.remove('hidden');
-        }
-
+        const showShoppingList = (meal) => {
+            dom.shoppingListModal.container.innerHTML = meal.ingredients?.length ? meal.ingredients.map(ing => `<a href="${ing.url}" target="_blank" rel="noopener noreferrer" class="block p-3 bg-gray-100 rounded-lg hover:bg-blue-100"><div class="flex justify-between items-center"><span class="font-medium">${ing.name}</span><i class="fas fa-external-link-alt text-gray-500"></i></div></a>`).join('') : `<p class="text-gray-500">This meal has no ingredients.</p>`;
+            dom.shoppingListModal.title.textContent = `${meal.name} List`;
+            openModal(dom.shoppingListModal);
+        };
+        
         // --- PWA Service Worker Registration ---
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js').then(registration => {
+                navigator.serviceWorker.register('sw.js').then(registration => {
                     console.log('Service Worker registered with scope:', registration.scope);
                 }).catch(error => {
                     console.log('Service Worker registration failed:', error);
                 });
             });
         }
+        
+        dom.addMealBtn.onclick = () => setupMealModal();
+        dom.mealModal.form.onsubmit = saveMeal;
+        dom.mealModal.cancelBtn.onclick = () => closeModal(dom.mealModal);
+        dom.mealModal.deleteBtn.onclick = deleteMeal;
+        dom.mealModal.addIngredientBtn.onclick = () => createIngredientInput();
+        dom.shoppingListModal.closeBtn.onclick = () => closeModal(dom.shoppingListModal);
+        dom.shareModal.closeBtn.onclick = () => closeModal(dom.shareModal);
+        dom.importModal.closeBtn.onclick = () => closeModal(dom.importModal);
+        dom.shareModal.copyBtn.onclick = () => {
+            // Using document.execCommand for broader compatibility in simple cases
+            const input = dom.shareModal.linkInput;
+            input.select();
+            input.setSelectionRange(0, 99999); // For mobile devices
+            try {
+                document.execCommand('copy');
+                dom.shareModal.feedback.style.opacity = '1';
+                setTimeout(() => dom.shareModal.feedback.style.opacity = '0', 2000);
+            } catch (err) {
+                console.error('Fallback: Oops, unable to copy', err);
+            }
+        };
 
-        // --- EVENT LISTENERS ---
-        addMealBtn.addEventListener('click', () => {
-            document.getElementById('modalTitle').innerText = 'Add New Meal';
-            createIngredientInput();
-            openModal();
-        });
-        cancelBtn.addEventListener('click', closeModal);
-        mealForm.addEventListener('submit', saveMeal);
-        addIngredientBtn.addEventListener('click', () => createIngredientInput());
-        deleteMealBtn.addEventListener('click', deleteMeal);
-        closeShoppingListBtn.addEventListener('click', () => shoppingListModal.classList.add('hidden'));
-
-        // Start the application
         startApp();
     </script>
-
 </body>
 </html>
