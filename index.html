@@ -173,7 +173,7 @@
             signInWithPopup(auth, provider)
                 .catch((error) => {
                     console.error("Google Sign-In Error:", error);
-                    alert("Could not sign in with Google. Please try again.");
+                    alert("Could not sign in with Google. This can be caused by popup blockers or if your website's domain is not authorized in Firebase. Please check the console for more details.");
                 });
         }
 
